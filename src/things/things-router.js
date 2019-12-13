@@ -24,7 +24,7 @@
 
 const express = require('express')
 const ThingsService = require('./things-service')
-const { requireAuth } = require('../../middleware/basic-auth')
+const { requireAuth } = require('../../middleware/jwt-auth')
 
 const thingsRouter = express.Router()
 

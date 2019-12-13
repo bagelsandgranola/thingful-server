@@ -2,7 +2,7 @@ const knex = require('knex')
 const app = require('../src/app')
 const helpers = require('./test-helpers')
 
-describe('Reviews Endpoints', function() {
+describe.only('Reviews Endpoints', function() {
   let db
 
   const {
@@ -33,13 +33,38 @@ describe('Reviews Endpoints', function() {
       )
     )
 
+    it(`responds with 401 'Missing bearer token' when no bearer token`, () => {
+      return supertest(app)
+        .post('/api/reviews')
+        .expect(401, {error: `Missing bearer token`})
+    })
+
+    it(`responds with 401 'Unauthorized request' when invalid secret`, () => {
+      const validUser = testUsers[0]
+      const invalidSecret = 'bad-secret'
+      return supertest(app)
+      .post('/api/reviews')
+      .set('authorization', helpers.makeAuthHeader(validUser, invalidSecret))
+      .expect(401, {error: `Unauthorized request`})
+    })
+
+    it(`responds 401 'Unauthorized request' when invaid sub in payload`, () => {
+      const userInvalid = {user_name: 'notreal', id: 1}
+      return supertest(app)
+      .post('/api/reviews')
+      .set('Authorization', helpers.makeAuthHeader(userInvalid))
+        .expect(401, {error: `Unauthorized request`})
+    })
+
+    /*
     it(`responds 401 'Unauthorized request' when invalid password`, () => {
       const userInvalidPass = {user_name: testUsers[0], password: 'invalid'}
       return supertest(app)
-      .post('/api/reviews')
-      .set('authorization', helpers.makeAuthHeader(userInvalidPass))
-      .expect(401, {error: `Unauthorized request`})
+        .post('/api/reviews')
+        .set('authorization', helpers.makeAuthHeader(userInvalidPass))
+        .expect(401, {error: `Unauthorized request`})
     })
+    */
 
     it(`creates an review, responding with 201 and the new review`, function() {
       this.retries(3)

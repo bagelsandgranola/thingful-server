@@ -216,34 +216,27 @@ describe('Things Endpoints', function() {
 
     protectedEndpoints.forEach(endpoint => {
       describe(endpoint.name, () => {
-        it(`responds with 401 'Missing basic token' when no basic token`, () => {
+        it(`responds with 401 'Missing bearer token' when no bearer token`, () => {
           return supertest(app)
             .get(endpoint.path)
-            .expect(401, {error: `Missing basic token`})
+            .expect(401, {error: `Missing bearer token`})
         })
   
-        it(`responds with 401 'Unauthorized request' when no credentials in token`, () => {
-          const userNoCreds = { user_name: '', password: ''}
+        it(`responds with 401 'Unauthorized request' when invalid secret`, () => {
+          const validUser = testUsers[0]
+          const invalidSecret = 'bad-secret'
           return supertest(app)
           .get(endpoint.path)
-          .set('authorization', helpers.makeAuthHeader(userNoCreds))
+          .set('authorization', helpers.makeAuthHeader(validUser, invalidSecret))
           .expect(401, {error: `Unauthorized request`})
         })
   
-        it(`responds 401 'Unauthorized request' when invaid user`, () => {
-          const userInvalid = {user_name: 'notreal', password: 'blank'}
+        it(`responds 401 'Unauthorized request' when invaid sub in payload`, () => {
+          const userInvalid = {user_name: 'notreal', id: 1}
           return supertest(app)
             .get(endpoint.path)
-            .set('authorization', helpers.makeAuthHeader(userInvalid))
+            .set('Authorization', helpers.makeAuthHeader(userInvalid))
             .expect(401, {error: `Unauthorized request`})
-        })
-  
-        it(`responds 401 'Unauthorized request' when invalid password`, () => {
-          const userInvalidPass = {user_name: testUsers[0], password: 'invalid'}
-          return supertest(app)
-          .get(endpoint.path)
-          .set('authorization', helpers.makeAuthHeader(userInvalidPass))
-          .expect(401, {error: `Unauthorized request`})
         })
       })
     })
